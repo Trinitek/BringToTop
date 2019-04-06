@@ -100,7 +100,7 @@
                             <Setter Property="Padding" Value="16" />
                             <Setter Property="Content">
                                 <Setter.Value>
-                                    <TextBlock>Topmost Disabled</TextBlock>
+                                    <TextBlock>Enable Topmost</TextBlock>
                                 </Setter.Value>
                             </Setter>
                             <Setter Property="Background" Value="DarkBlue" />
@@ -109,7 +109,7 @@
                                     <Setter Property="Background" Value="Red" />
                                     <Setter Property="Content">
                                         <Setter.Value>
-                                            <TextBlock>Topmost Enabled</TextBlock>
+                                            <TextBlock>Disable Topmost</TextBlock>
                                         </Setter.Value>
                                     </Setter>
                                 </DataTrigger>

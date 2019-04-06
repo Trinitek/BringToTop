@@ -42,6 +42,7 @@ namespace BringToTop.ViewModels
                 {
                     var newProcesses = Process.GetProcesses()
                         .Where(p => !string.IsNullOrWhiteSpace(p.MainWindowTitle))
+                        .Where(p => p.Id != Process.GetCurrentProcess().Id)
                         .ToDictionary(p => p.Id);
 
                     _processSourceCache.Edit(updater =>
