@@ -6,56 +6,119 @@
     xmlns:local="clr-namespace:BringToTop"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewmodels="clr-namespace:BringToTop.ViewModels"
-    Title="MainWindow"
-    Width="600"
-    Height="400"
+    Title="Bring To Top"
+    Width="400"
+    Height="600"
+    MinWidth="400"
+    MinHeight="200"
     Background="{x:Static SystemColors.ControlBrush}"
     ResizeMode="CanResize"
+    Topmost="True"
     mc:Ignorable="d">
     <Window.DataContext>
         <viewmodels:ProcessEditorViewModel />
     </Window.DataContext>
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="booleanVisibilityConverter" />
         <DataTemplate x:Key="ProcessItemTemplate" DataType="{x:Type viewmodels:ProcessViewModel}">
-            <StackPanel Orientation="Horizontal">
-                <Image
-                    Width="32"
-                    Height="32"
-                    Margin="4"
-                    Source="{Binding Path=Icon, Mode=OneWay}" />
-                <StackPanel Orientation="Vertical">
-                    <TextBlock Opacity=".8">
-                        <Run Text="{Binding Path=ProcessName, Mode=OneWay}" />
-                        <Run>(</Run><Run Text="{Binding Path=ProcessId, Mode=OneWay}" /><Run>)</Run>
-                    </TextBlock>
-                    <TextBlock FontSize="10pt" Text="{Binding Path=WindowName, Mode=OneWay}" />
+            <Border BorderThickness="2">
+                <Border.Style>
+                    <Style TargetType="{x:Type Border}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=AlwaysOnTop}" Value="True">
+                                <Setter Property="BorderBrush" Value="Red" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel Orientation="Horizontal">
+                    <Image
+                        Width="32"
+                        Height="32"
+                        Margin="4"
+                        Source="{Binding Path=Icon, Mode=OneWay}" />
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Opacity=".6">
+                            <Run Text="{Binding Path=ProcessName, Mode=OneWay}" />
+                            <Run>(</Run><Run Text="{Binding Path=ProcessId, Mode=OneWay}" /><Run>)</Run>
+                        </TextBlock>
+                        <TextBlock FontSize="10pt" Text="{Binding Path=WindowName, Mode=OneWay}" />
+                        <TextBlock
+                            FontWeight="Bold"
+                            Foreground="Red"
+                            Visibility="{Binding Path=AlwaysOnTop, Converter={StaticResource booleanVisibilityConverter}}">
+                            Topmost Enabled!
+                        </TextBlock>
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
+            </Border>
         </DataTemplate>
     </Window.Resources>
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
         <ListBox
-            Grid.Column="0"
+            Grid.Row="0"
+            HorizontalContentAlignment="Stretch"
             ItemTemplate="{StaticResource ProcessItemTemplate}"
             ItemsSource="{Binding Path=Processes}"
-            SelectedValue="{Binding Path=SelectedProcess}" />
+            SelectedValue="{Binding Path=SelectedProcess}">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="{x:Type ListBoxItem}">
+                    <Setter Property="Padding" Value="0" />
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
         <Grid
-            Grid.Column="1"
+            Grid.Row="1"
             Margin="4"
             DataContext="{Binding Path=SelectedProcess}">
             <StackPanel Orientation="Vertical">
-                <TextBlock FontSize="12pt">Process Overview</TextBlock>
-                <TextBlock Text="{Binding Path=ProcessName}" />
-                <TextBlock Text="{Binding Path=ProcessId}" />
-                <Image
-                    Width="32"
-                    Height="32"
-                    Source="{Binding Path=Icon}" />
-                <TextBlock Text="{Binding Path=WindowName}" />
+                <ToggleButton IsChecked="{Binding Path=AlwaysOnTop}">
+                    <ToggleButton.Style>
+                        <Style TargetType="{x:Type ToggleButton}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                        <Border
+                                            Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}">
+                                            <ContentPresenter
+                                                Margin="{TemplateBinding Padding}"
+                                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="TextBlock.FontSize" Value="12pt" />
+                            <Setter Property="TextBlock.Foreground" Value="White" />
+                            <Setter Property="Padding" Value="16" />
+                            <Setter Property="Content">
+                                <Setter.Value>
+                                    <TextBlock>Topmost Disabled</TextBlock>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="Background" Value="DarkBlue" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Path=AlwaysOnTop}" Value="True">
+                                    <Setter Property="Background" Value="Red" />
+                                    <Setter Property="Content">
+                                        <Setter.Value>
+                                            <TextBlock>Topmost Enabled</TextBlock>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" Value=".8" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ToggleButton.Style>
+                </ToggleButton>
             </StackPanel>
         </Grid>
     </Grid>

@@ -6,13 +6,15 @@ using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using System.Windows;
 using System.IO;
-using System.ComponentModel;
 using Vanara.PInvoke;
+using System.Reactive.Linq;
 
 namespace BringToTop.ViewModels
 {
     public class ProcessViewModel : UXViewModel
     {
+        private Process _process;
+
         private int _processId;
         public int ProcessId
         {
@@ -41,9 +43,49 @@ namespace BringToTop.ViewModels
             set => this.RaiseAndSetIfChanged(ref _processName, value);
         }
 
+        private bool _alwaysOnTop;
+        public bool AlwaysOnTop
+        {
+            get => _alwaysOnTop;
+            set => this.RaiseAndSetIfChanged(ref _alwaysOnTop, value);
+        }
+
+        private readonly bool _isInitialized;
+
         public ProcessViewModel(Process process)
         {
             Load(process);
+
+            this.WhenAnyValue(vm => vm.AlwaysOnTop)
+                .Where(alwaysOnTop => _isInitialized)
+                .Do(alwaysOnTop =>
+                {
+                    if (alwaysOnTop)
+                    {
+                        User32_Gdi.SetWindowPos(
+                            hWnd: _process.MainWindowHandle,
+                            hWndInsertAfter: User32_Gdi.SpecialWindowHandles.HWND_TOPMOST,
+                            X: 0,
+                            Y: 0,
+                            cx: 0,
+                            cy: 0,
+                            uFlags: User32_Gdi.SetWindowPosFlags.SWP_NOMOVE | User32_Gdi.SetWindowPosFlags.SWP_NOSIZE);
+                    }
+                    else
+                    {
+                        User32_Gdi.SetWindowPos(
+                            hWnd: _process.MainWindowHandle,
+                            hWndInsertAfter: User32_Gdi.SpecialWindowHandles.HWND_NOTOPMOST,
+                            X: 0,
+                            Y: 0,
+                            cx: 0,
+                            cy: 0,
+                            uFlags: User32_Gdi.SetWindowPosFlags.SWP_NOMOVE | User32_Gdi.SetWindowPosFlags.SWP_NOSIZE);
+                    }
+                })
+                .Subscribe();
+
+            _isInitialized = true;
         }
 
         public void Load(Process process)
@@ -52,6 +94,8 @@ namespace BringToTop.ViewModels
             {
                 throw new ArgumentNullException(nameof(process));
             }
+
+            _process = process;
 
             WindowName = process.MainWindowTitle;
             ProcessId = process.Id;
@@ -76,25 +120,11 @@ namespace BringToTop.ViewModels
                 }
             }
 
-            //try
-            //{
-            //    using (var icon = System.Drawing.Icon.ExtractAssociatedIcon(process.MainModule.FileName))
-            //    using (var ms = new MemoryStream())
-            //    {
-            //        var iconImageSource = Imaging.CreateBitmapSourceFromHIcon(
-            //            icon: icon.Handle,
-            //            sourceRect: new Int32Rect(0, 0, icon.Width, icon.Height),
-            //            sizeOptions: BitmapSizeOptions.FromEmptyOptions());
-            //
-            //        iconImageSource.Freeze();
-            //
-            //        Icon = iconImageSource;
-            //    }
-            //}
-            //catch (Win32Exception)
-            //{
-            //    // Do nothing
-            //}
+            var windowStyle = (User32_Gdi.WindowStylesEx)User32_Gdi.GetWindowLong(
+                hWnd: process.MainWindowHandle,
+                nIndex: User32_Gdi.WindowLongFlags.GWL_EXSTYLE);
+
+            AlwaysOnTop = (windowStyle & User32_Gdi.WindowStylesEx.WS_EX_TOPMOST) != 0;
         }
 
         private static HICON GetProcessHIcon(Process process)
