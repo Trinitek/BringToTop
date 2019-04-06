@@ -12,6 +12,7 @@
     MinWidth="400"
     MinHeight="200"
     Background="{x:Static SystemColors.ControlBrush}"
+    Icon="BringToTop.ico"
     ResizeMode="CanResize"
     Topmost="True"
     mc:Ignorable="d">
