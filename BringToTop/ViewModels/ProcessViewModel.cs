@@ -101,7 +101,8 @@ namespace BringToTop.ViewModels
             ProcessId = process.Id;
             ProcessName = process.ProcessName;
 
-            HICON hIcon = GetProcessHIcon(process);
+            // TODO: Fix GetProcessHIcon -- will freeze if the target window does not respond to messages!
+            HICON hIcon = HICON.NULL;// GetProcessHIcon(process);
 
             var icon = hIcon.ToIcon();
 

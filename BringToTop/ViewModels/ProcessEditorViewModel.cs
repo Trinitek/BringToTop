@@ -45,6 +45,8 @@ namespace BringToTop.ViewModels
                         .Where(p => p.Id != Process.GetCurrentProcess().Id)
                         .ToDictionary(p => p.Id);
 
+                    Debug.WriteLine($"Found {newProcesses.Count} processes");
+
                     _processSourceCache.Edit(updater =>
                     {
                         var newIds = newProcesses.Keys;
